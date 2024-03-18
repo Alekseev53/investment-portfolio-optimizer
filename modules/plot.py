@@ -87,7 +87,8 @@ def draw_circles_with_tooltips(
 
     ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
     plt.rcParams["font.family"] = "monospace"
-    _, axes = plt.subplots(figsize=(9, 6))
+    c_mul = 2
+    _, axes = plt.subplots(figsize=(9*c_mul, 6*c_mul))
 
     padding_percent = 15
     xlim_min = min(c['x'] for line in circle_lines for c in line)

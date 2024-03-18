@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import tqdm
 import argparse
 import multiprocessing
 import functools
@@ -10,12 +11,13 @@ from modules.capitalgain import read_capitalgain_csv_data
 from modules.plot import draw_portfolios_statistics, draw_portfolios_history
 from asset_colors import RGB_COLOR_MAP
 
+MAX_P = 100
 
 def gen_portfolios(assets: list, percentage_step: int, percentages_ret: list):
     if percentages_ret and len(percentages_ret) == len(assets) - 1:
         yield Portfolio(list(zip(assets, percentages_ret + [100 - sum(percentages_ret)])))
         return
-    for asset_percent in range(0, 101 - sum(percentages_ret), percentage_step):
+    for asset_percent in range(0, MAX_P +1 - sum(percentages_ret), percentage_step):
         added_percentages = percentages_ret + [asset_percent]
         yield from gen_portfolios(assets, percentage_step, added_percentages)
 
@@ -33,20 +35,54 @@ def _parse_args(argv=None):
         '--precision', type=int, default=10,
         help='simulation precision, values less than 5 require A LOT of ram!')
     return parser.parse_args()
-
+from pprint import pprint
 
 def main(argv):
     cmdline_args = _parse_args(argv)
-    tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data(cmdline_args.asset_returns_csv)
+    #tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("asset_returns - Copy of asset_returns.csv (2).csv")#cmdline_args.asset_returns_csv
+    tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("without_gol.csv.csv")#cmdline_args.asset_returns_csv
+    #tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("asset_returns_original.csv")#cmdline_args.asset_returns_csv
+    #print(tickers_to_test)
+    #pprint(yearly_revenue_multiplier)
+
     time_start = time.time()
+
     portfolios = []
     for portfolio in gen_portfolios(tickers_to_test, cmdline_args.precision, []):
         portfolios.append(portfolio)
+        #print(portfolio.weights)
+
+
     time_prepare = time.time()
     with multiprocessing.Pool() as pool:
         pool_func = functools.partial(_simulate_portfolio, yearly_revenue_multiplier)
-        portfolios_simulated = list(pool.map(pool_func, portfolios))
+        # Use tqdm to monitor progress
+        portfolios_simulated = list(tqdm.tqdm(pool.imap(pool_func, portfolios), total=len(portfolios)))
+
     time_simulate = time.time()
+
+
+    print(len(portfolios_simulated))
+
+    # new_portfolios_simulated = []
+    # for stat_values in portfolios_simulated:
+    #     if stat_values.stat_stdev<0.5:#stat_values.stat_cagr > 0.04:
+    #                 new_portfolios_simulated.append(stat_values)
+    # portfolios_simulated=new_portfolios_simulated
+
+    print(len(portfolios_simulated))
+    print(portfolios_simulated[:2])
+    portfolios_simulated = sorted(portfolios_simulated, key=lambda x: x.stat_stdev)
+    # Применяем алгоритм
+    # new_result_array = []
+    # max_gain = -1
+    # for stat_values in portfolios_simulated:
+    #     if stat_values.stat_gain > max_gain:
+    #         new_result_array.append(stat_values)
+    #         max_gain = max(max_gain, stat_values.stat_gain)
+    
+    # portfolios_simulated = new_result_array
+    print(len(portfolios_simulated))
 
     print(f'DONE :: {len(portfolios_simulated)} portfolios tested')
     print(f'times: prepare = {time_prepare-time_start:.2f}s, simulate = {time_simulate-time_prepare:.2f}s')
@@ -71,6 +107,12 @@ def main(argv):
     for portfolio in portfolios_simulated:
         if portfolio.number_of_assets() == 1:
             portfolios_for_history.add(portfolio)
+
+
+
+
+
+
 
     draw_portfolios_history(
         portfolios_for_history,

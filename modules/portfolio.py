@@ -25,7 +25,11 @@ class Portfolio:
         for year in market_data.keys():
             new_capital = 0
             for ticker, weight in self.weights:
-                new_capital += capital * weight / 100 * market_data[year][ticker]
+                try:
+                    new_capital += capital * weight / 100 * market_data[year][ticker]
+                except KeyError:
+                    new_capital += capital * weight / 100
+                #print(new_capital)
             if capital > 0:
                 self.annual_gains[year] = new_capital / capital
             capital = new_capital
