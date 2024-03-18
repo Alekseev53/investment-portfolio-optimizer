@@ -40,19 +40,27 @@ from pprint import pprint
 def main(argv):
     cmdline_args = _parse_args(argv)
     #tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("asset_returns - Copy of asset_returns.csv (2).csv")#cmdline_args.asset_returns_csv
-    tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("without_gol.csv.csv")#cmdline_args.asset_returns_csv
+    #tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("without_gol.csv.csv")#cmdline_args.asset_returns_csv
+    #tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("small_corr.csv")
+    tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("my - asset_returns_original.csv")
     #tickers_to_test, yearly_revenue_multiplier = read_capitalgain_csv_data("asset_returns_original.csv")#cmdline_args.asset_returns_csv
     #print(tickers_to_test)
     #pprint(yearly_revenue_multiplier)
 
     time_start = time.time()
-
     portfolios = []
     for portfolio in gen_portfolios(tickers_to_test, cmdline_args.precision, []):
         portfolios.append(portfolio)
-        #print(portfolio.weights)
-
-
+    print(portfolios[0].weights)
+# Bitcon	17.13149
+# Акции РФ	8.11619
+# Золото	3.56040
+# Вклады	64.46515
+# Доллар$	6.72677
+#17.13149+8.11619+3.56040+64.46515+6.72678
+    Active_1 = Portfolio([('Акции РФ', 8.11619), ('Депозиты в рублях (до года)', 64.46515), ('Доллар США', 6.72677), ('Золото', 3.56040), ('Bytcoin', 17.13149)])
+    portfolios.append(Active_1)
+    
     time_prepare = time.time()
     with multiprocessing.Pool() as pool:
         pool_func = functools.partial(_simulate_portfolio, yearly_revenue_multiplier)
@@ -61,27 +69,38 @@ def main(argv):
 
     time_simulate = time.time()
 
-
+    #print(portfolios_simulated)
     print(len(portfolios_simulated))
 
     # new_portfolios_simulated = []
     # for stat_values in portfolios_simulated:
-    #     if stat_values.stat_stdev<0.5:#stat_values.stat_cagr > 0.04:
+    #     if stat_values.stat_var<=0.15:#stat_values.stat_cagr > 0.04:
     #                 new_portfolios_simulated.append(stat_values)
     # portfolios_simulated=new_portfolios_simulated
 
     print(len(portfolios_simulated))
-    print(portfolios_simulated[:2])
+    # # Применяем алгоритм
     portfolios_simulated = sorted(portfolios_simulated, key=lambda x: x.stat_stdev)
-    # Применяем алгоритм
-    # new_result_array = []
-    # max_gain = -1
-    # for stat_values in portfolios_simulated:
-    #     if stat_values.stat_gain > max_gain:
-    #         new_result_array.append(stat_values)
-    #         max_gain = max(max_gain, stat_values.stat_gain)
+    new_result_array = []
+    max_gain = -1
+    for stat_values in portfolios_simulated:
+        if stat_values.stat_gain > max_gain or stat_values.weights == Active_1.weights:
+            new_result_array.append(stat_values)
+            max_gain = max(max_gain, stat_values.stat_gain)
     
-    # portfolios_simulated = new_result_array
+    portfolios_simulated = new_result_array
+
+
+    portfolios_simulated = sorted(portfolios_simulated, key=lambda x: -x.stat_stdev)
+
+    new_result_array = []
+    max_sharp = 0
+    for stat_values in portfolios_simulated:
+        if stat_values.stat_sharpe > max_sharp or stat_values.weights == Active_1.weights:
+            new_result_array.append(stat_values)
+            max_sharp = max(max_sharp, stat_values.stat_sharpe)
+    
+    portfolios_simulated = new_result_array
     print(len(portfolios_simulated))
 
     print(f'DONE :: {len(portfolios_simulated)} portfolios tested')
