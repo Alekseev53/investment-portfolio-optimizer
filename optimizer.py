@@ -58,8 +58,17 @@ def main(argv):
 # Вклады	64.46515
 # Доллар$	6.72677
 #17.13149+8.11619+3.56040+64.46515+6.72678
-    Active_1 = Portfolio([('Акции РФ', 8.11619), ('Депозиты в рублях (до года)', 64.46515), ('Доллар США', 6.72677), ('Золото', 3.56040), ('Bytcoin', 17.13149)])
-    portfolios.append(Active_1)
+    
+# Bitcon	48.21028
+# Акции РФ	22.84003
+# Золото	10.01943
+# Вклады	0.00000
+# $	18.93026
+    Active_1 = [
+        Portfolio([('Акции РФ', 8.11619), ('Депозиты в рублях (до года)', 64.46515), ('Доллар США', 6.72677), ('Золото', 3.56040), ('Bytcoin', 17.13149)]),
+        Portfolio([('Акции РФ', 22.84003), ('Депозиты в рублях (до года)', 0), ('Доллар США', 18.93026), ('Золото', 10.01943), ('Bytcoin', 48.21028)]),
+        ]
+    portfolios.extend(Active_1)
     
     time_prepare = time.time()
     with multiprocessing.Pool() as pool:
@@ -84,7 +93,7 @@ def main(argv):
     new_result_array = []
     max_gain = -1
     for stat_values in portfolios_simulated:
-        if stat_values.stat_gain > max_gain or stat_values.weights == Active_1.weights:
+        if stat_values.stat_gain > max_gain or stat_values.weights in [x.weights for x in Active_1]:
             new_result_array.append(stat_values)
             max_gain = max(max_gain, stat_values.stat_gain)
     
@@ -96,7 +105,7 @@ def main(argv):
     new_result_array = []
     max_sharp = 0
     for stat_values in portfolios_simulated:
-        if stat_values.stat_sharpe > max_sharp or stat_values.weights == Active_1.weights:
+        if stat_values.stat_sharpe > max_sharp or stat_values.weights in [x.weights for x in Active_1]:
             new_result_array.append(stat_values)
             max_sharp = max(max_sharp, stat_values.stat_sharpe)
     
