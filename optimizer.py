@@ -74,12 +74,13 @@ def main(argv):
     # Золото	10.01943
     # Вклады	0.00000
     # $	18.93026
-    # Active_1 = [
-    #     Portfolio([('Акции РФ', 8.11619), ('Депозиты в рублях (до года)', 64.46515), ('Доллар США', 6.72677), ('Золото', 3.56040), ('Bytcoin', 17.13149)]),
-    #     Portfolio([('Акции РФ', 22.84003), ('Депозиты в рублях (до года)', 0), ('Доллар США', 18.93026), ('Золото', 10.01943), ('Bytcoin', 48.21028)]),
-    #     ]
-    # portfolios.extend(Active_1)
-    Active_1=[]
+    Active_1 = [
+        Portfolio([('Акции РФ', 8.11619), ('Депозиты в рублях (до года)', 64.46515), ('Доллар США', 6.72677), ('Золото', 3.56040), ('Bytcoin', 17.13149)]),
+        Portfolio([('Акции РФ', 22.84003), ('Депозиты в рублях (до года)', 0), ('Доллар США', 18.93026), ('Золото', 10.01943), ('Bytcoin', 48.21028)]),
+        Portfolio([('Акции РФ',  11.57), ('Депозиты в рублях (до года)', 65.31), ('Доллар США', 4.15), ('Золото', 4.33), ('Bytcoin', 14.64)]),
+        ]
+    portfolios.extend(Active_1)
+    #Active_1=[]
     
     time_prepare = time.time()
     with multiprocessing.Pool() as pool:
@@ -91,7 +92,7 @@ def main(argv):
 
     #print(portfolios_simulated)
     print(len(portfolios_simulated))
-    CONST_N=0.5
+    CONST_N=3
     new_portfolios_simulated = []
     for stat_values in portfolios_simulated:
         if stat_values.stat_stdev<=CONST_N:#stat_values.stat_cagr > 0.04:
@@ -168,52 +169,52 @@ def main(argv):
             f'{cmdline_args.precision}% step',
         ]
     )
-    # draw_portfolios_statistics(
-    #     portfolios_list=portfolios_simulated,
-    #     f_x=lambda x: x.stat_var, f_y=lambda y: y.stat_cagr * 100,
-    #     title=title, xlabel='Variance', ylabel='CAGR %', color_map=RGB_COLOR_MAP)
-    # draw_portfolios_statistics(
-    #     portfolios_list=portfolios_simulated,
-    #     f_x=lambda x: x.stat_var, f_y=lambda y: y.stat_sharpe,
-    #     title=title, xlabel='Variance', ylabel='Sharpe', color_map=RGB_COLOR_MAP)
+    draw_portfolios_statistics(
+        portfolios_list=portfolios_simulated,
+        f_x=lambda x: x.stat_var, f_y=lambda y: y.stat_cagr * 100,
+        title=title, xlabel='Variance', ylabel='CAGR %', color_map=RGB_COLOR_MAP)
+    draw_portfolios_statistics(
+        portfolios_list=portfolios_simulated,
+        f_x=lambda x: x.stat_var, f_y=lambda y: y.stat_sharpe,
+        title=title, xlabel='Variance', ylabel='Sharpe', color_map=RGB_COLOR_MAP)
     draw_portfolios_statistics(
         portfolios_list=portfolios_simulated,
         f_x=lambda x: x.stat_stdev, f_y=lambda y: y.stat_cagr * 100,
         title=title, xlabel='Stdev', ylabel='CAGR %', color_map=RGB_COLOR_MAP)
-    # draw_portfolios_statistics(
-    #     portfolios_list=portfolios_simulated,
-    #     f_x=lambda x: x.stat_stdev, f_y=lambda y: y.stat_sharpe,
-    #     title=title, xlabel='Stdev', ylabel='Sharpe', color_map=RGB_COLOR_MAP)
-    # draw_portfolios_statistics(
-    #     portfolios_list=portfolios_simulated,
-    #     f_x=lambda x: x.stat_sharpe, f_y=lambda y: y.stat_cagr * 100,
-    #     title=title, xlabel='Sharpe', ylabel='CAGR %', color_map=RGB_COLOR_MAP)
+    draw_portfolios_statistics(
+        portfolios_list=portfolios_simulated,
+        f_x=lambda x: x.stat_stdev, f_y=lambda y: y.stat_sharpe,
+        title=title, xlabel='Stdev', ylabel='Sharpe', color_map=RGB_COLOR_MAP)
+    draw_portfolios_statistics(
+        portfolios_list=portfolios_simulated,
+        f_x=lambda x: x.stat_sharpe, f_y=lambda y: y.stat_cagr * 100,
+        title=title, xlabel='Sharpe', ylabel='CAGR %', color_map=RGB_COLOR_MAP)
 
-    xdata = [x.stat_stdev for x in portfolios_simulated]
-    ydata = [x.stat_cagr for x in portfolios_simulated]
+    # xdata = [x.stat_stdev for x in portfolios_simulated]
+    # ydata = [x.stat_cagr for x in portfolios_simulated]
 
-    # поиск параметров
-    popt, pcov = curve_fit(func, xdata, ydata)
+    # # поиск параметров
+    # popt, pcov = curve_fit(func, xdata, ydata)
 
-    # вывод параметров
-    a, b = popt
-    print(f"a = {a}, b = {b}")
+    # # вывод параметров
+    # a, b = popt
+    # print(f"a = {a}, b = {b}")
     
     
-    # создание последовательности для визуализации
-    x = np.linspace(xdata[0], CONST_N, 400)
-    y = func(x, *popt)
-    # Clear the plot before visualizing
-    plt.clf()
+    # # создание последовательности для визуализации
+    # x = np.linspace(xdata[0], CONST_N, 400)
+    # y = func(x, *popt)
+    # # Clear the plot before visualizing
+    # plt.clf()
 
-    # визуализация
-    plt.figure(figsize=(10,6))
-    plt.plot(xdata, ydata, 'bo', label='данные')
-    plt.plot(x, y, 'r', label='подгонка: a=%.3f, b=%.3f' % tuple(popt))
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.legend()
-    plt.show()
+    # # визуализация
+    # plt.figure(figsize=(10,6))
+    # plt.plot(xdata, ydata, 'bo', label='данные')
+    # plt.plot(x, y, 'r', label='подгонка: a=%.3f, b=%.3f' % tuple(popt))
+    # plt.xlabel('x')
+    # plt.ylabel('y')
+    # plt.legend()
+    # plt.show()
 
 if __name__ == '__main__':
     main(sys.argv)
